@@ -1,27 +1,5 @@
-
-
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:workmanager/workmanager.dart';
-import 'package:background_location/notification.dart' as notif;
 import 'package:flutter_background_location/flutter_background_location.dart';
-
-const fetchBackground = "fetchBackground";
-
-void callbackDispatcher() {
-  Workmanager.executeTask((task, inputData) async {
-    switch (task) {
-      case fetchBackground:
-        //Geolocator geoLocator = Geolocator()..forceAndroidLocationManager = true;
-        Position userLocation = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-        notif.Notification notification = new notif.Notification();
-        notification.showNotificationWithoutSound(userLocation);
-        break;
-    }
-    return Future.value(true);
-  });
-}
-
 
 void main() => runApp(MyApp());
 
@@ -50,13 +28,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   String latitude = "waiting...";
   String longitude = "waiting...";
   String altitude = "waiting...";
   String accuracy = "waiting...";
   String bearing = "waiting...";
   String speed = "waiting...";
+
+  int count = 0;
 
   @override
   void initState() {
@@ -71,6 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
         this.altitude = location.altitude.toString();
         this.bearing = location.bearing.toString();
         this.speed = location.speed.toString();
+        count++;
       });
 
       print("""
@@ -84,49 +64,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-
-
-  //
-  // Timer timer;
-  // @override
-  // void dispose() {
-  //   timer?.cancel();
-  //   super.dispose();
-  // }
-
-  // checkForNewSharedLists() async{
-  //
-  //   Position userLocation = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  //   notif.Notification notification = new notif.Notification();
-  //   notification.showNotificationWithoutSound(userLocation);
-  //
-  //
-  //
-  // }
-
-
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //
-  //   //timer = Timer.periodic(Duration(seconds: 20), (Timer t) => checkForNewSharedLists());
-  //
-  //   // We don't need it anymore since it will be executed in background
-  //   //this._getUserPosition();
-  //
-  //   Workmanager.initialize(
-  //     callbackDispatcher,
-  //     isInDebugMode: true,
-  //   );
-  //
-  //   Workmanager.registerPeriodicTask(
-  //       "1",
-  //       fetchBackground,
-  //       frequency: Duration(minutes: 15),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,8 +75,8 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              "",
-              style: Theme.of(context).textTheme.display1,
+              "$count\n\n\n$latitude\n$longitude",
+              style: TextStyle(fontSize: 14, ),
             ),
           ],
         ),
@@ -147,3 +84,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
