@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_location/flutter_background_location.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart';
-
+import 'package:location_permissions/location_permissions.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,8 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       // home: MyHomePage(title: 'Flutter Demo Home Page'),
-      home:  MyHomePage(title: 'Flutter Location Demo'),
-
+      home: MyHomePage(title: 'Flutter Location Demo'),
     );
   }
 }
@@ -43,17 +44,48 @@ class _MyHomePageState extends State<MyHomePage> {
   final Location location = Location();
   bool _serviceEnabled;
 
+  //stream
+  Stream<bool> locationEventStream;
+
   @override
   void initState() {
     super.initState();
 
 
-    _checkService();
+    gpsStatusStream();
 
+
+    locationEventStream = LocationPermissions()
+        .serviceStatus
+        .map((s) => s == ServiceStatus.enabled ? true : false);
+
+    print(locationEventStream);
+
+
+
+    //_checkService();
   }
 
+  Stream<bool> gpsStatusStream() async* {
+    bool enabled;
+    while (true) {
+      try {
+        bool isEnabled = await Geolocator().isLocationServiceEnabled();
+        if (enabled != isEnabled) {
 
-  void myLocation(){
+          print(isEnabled);
+          enabled = isEnabled;
+          yield enabled;
+        }
+      }
+      catch (error) {
+        print(error);
+      }
+
+    }
+  }
+
+  void myLocation() {
     FlutterBackgroundLocation.startLocationService();
     FlutterBackgroundLocation.getLocationUpdates((location) {
       setState(() {
@@ -77,8 +109,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-
-
   Future<void> _checkService() async {
     final bool serviceEnabledResult = await location.serviceEnabled();
     setState(() {
@@ -86,13 +116,11 @@ class _MyHomePageState extends State<MyHomePage> {
       print(_serviceEnabled);
     });
 
-    if(_serviceEnabled){
+    if (_serviceEnabled) {
       myLocation();
-    }else{
+    } else {
       _requestService();
     }
-
-
   }
 
   Future<void> _requestService() async {
@@ -104,17 +132,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
       print(_serviceEnabled);
 
-
       if (!serviceRequestedResult) {
         return;
-      }
-      else{
+      } else {
         myLocation();
       }
     }
   }
-
-
 
   // void locationService() async{
   //
@@ -164,8 +188,28 @@ class _MyHomePageState extends State<MyHomePage> {
   //   }
   // }
 
-
-
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: Text(widget.title),
+  //     ),
+  //     body: Center(
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: <Widget>[
+  //           Text(
+  //             "$count\n\n\n$latitude\n$longitude",
+  //             style: TextStyle(
+  //               fontSize: 14,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+  //
 
   @override
   Widget build(BuildContext context) {
@@ -183,9 +227,68 @@ class _MyHomePageState extends State<MyHomePage> {
                 fontSize: 14,
               ),
             ),
+            // StreamBuilder<bool>(
+            //   stream: locationEventStream,
+            //   builder: (context, snapshot) {
+            //     if (snapshot.connectionState == ConnectionState.active &&
+            //         snapshot.hasData) {
+            //       if (snapshot.data) {
+            //         //GPS on
+            //         print('iffffff');
+            //         print(snapshot.data);
+            //       } else {
+            //         //GPS off
+            //         print('elssss');
+            //         print(snapshot.data);
+            //       }
+            //     }
+            //   },
+            //
+            // )
           ],
         ),
       ),
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return StreamBuilder<bool>(
+  //     stream: locationEventStream,
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.active &&
+  //           snapshot.hasData) {
+  //         if (snapshot.data) {
+  //           //GPS on
+  //           print('iffffff');
+  //           print(snapshot.data);
+  //         } else {
+  //           //GPS off
+  //           print('elssss');
+  //           print(snapshot.data);
+  //         }
+  //       }
+  //     },
+  //   );
+  // }
+
+// StreamBuilder<bool>(
+//   stream: locationEventStream,
+//   builder: (context, snapshot) {
+//     if (snapshot.connectionState == ConnectionState.active &&
+//         snapshot.hasData) {
+//       if (snapshot.data) {
+//         //GPS on
+//         print('iffffff');
+//         print(snapshot.data);
+//       } else {
+//         //GPS off
+//         print('elssss');
+//         print(snapshot.data);
+//       }
+//     }
+//   },
+//
+// )
+
 }
